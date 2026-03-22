@@ -1,0 +1,15 @@
+pandas
+numpy
+seaborn
+matplotlib
+scikit-learn
+catboost
+xgboost
+Flask
+dill
+supabase
+python-dotenv
+google-generativeai
+shap
+flask-cors
+-e .
