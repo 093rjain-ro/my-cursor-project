@@ -19,6 +19,7 @@ from src.utils import load_object
 load_dotenv()
 
 app = Flask(__name__)
+application = app
 CORS(app)
 
 # Initialize Supabase
@@ -111,9 +112,13 @@ def predict(user):
         )
         
         pred_df = custom_data.get_data_as_data_frame()
+        
+        if not os.path.exists(os.path.join("Artifacts", "Model.pkl")):
+            return jsonify({"error": "Model not trained yet. Deploy models via retrain pipeline first."}), 503
+            
         predict_pipeline = PredictPipeline()
         preds = predict_pipeline.predict(pred_df)
-        predicted_score = round(float(preds[0]), 1)
+        predicted_score = float(f"{float(preds[0]):.1f}")
         
         # Calculate Risk Level
         risk_level = get_risk_level(predicted_score)
@@ -123,12 +128,13 @@ def predict(user):
         try:
             import shap
             # Attempt to explain using an explainer
-            data_scaled = ml_preprocessor.transform(pred_df)
-            if hasattr(ml_model, "predict"):
-                explainer = shap.Explainer(ml_model, data_scaled)
-                shap_values = explainer(data_scaled)
-                # Map to original feature names
-                feature_names = pred_df.columns.tolist()
+            if ml_preprocessor is not None and ml_model is not None:
+                data_scaled = ml_preprocessor.transform(pred_df)
+                if hasattr(ml_model, "predict"):
+                    explainer = shap.Explainer(ml_model, data_scaled)
+                    shap_values = explainer(data_scaled)
+                    # Map to original feature names
+                    feature_names = pred_df.columns.tolist()
                 
                 # Simplified dummy mapping for the output if SHAP calculation fails / gets complex
                 # In real scenario, shap_values.values[0] matches the scaled features which might differ

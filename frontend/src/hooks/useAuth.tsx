@@ -19,48 +19,44 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [loading, setLoading] = useState(true)
 
   async function fetchProfile(userId: string) {
-    const { data } = await supabase
-      .from('profiles')
-      .select('*')
-      .eq('id', userId)
-      .single()
-    setProfile(data)
+    try {
+      const { data, error } = await supabase
+        .from('profiles')
+        .select('*')
+        .eq('id', userId)
+        .single()
+      if (error) {
+        console.error('Profile fetch error:', error)
+        setProfile(null)
+      } else {
+        setProfile(data)
+      }
+    } catch (e) {
+      console.error('Profile fetch exception:', e)
+      setProfile(null)
+    }
   }
 
   useEffect(() => {
-    let mounted = true
-
-    async function initSession() {
-      const { data: { session } } = await supabase.auth.getSession()
-      if (!mounted) return
-
+    supabase.auth.getSession().then(({ data: { session } }) => {
       setUser(session?.user ?? null)
       if (session?.user) {
-        await fetchProfile(session.user.id)
+        fetchProfile(session.user.id).finally(() => setLoading(false))
       } else {
-        setProfile(null)
-      }
-      setLoading(false)
-    }
-
-    initSession()
-
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (_e, session) => {
-      setUser(session?.user ?? null)
-      if (session?.user) {
-        setLoading(true)
-        await fetchProfile(session.user.id)
-        setLoading(false)
-      } else {
-        setProfile(null)
         setLoading(false)
       }
     })
 
-    return () => {
-      mounted = false
-      subscription.unsubscribe()
-    }
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_e, session) => {
+      setUser(session?.user ?? null)
+      if (session?.user) {
+        fetchProfile(session.user.id)
+      } else {
+        setProfile(null)
+      }
+    })
+
+    return () => subscription.unsubscribe()
   }, [])
 
   async function signIn(email: string, password: string) {

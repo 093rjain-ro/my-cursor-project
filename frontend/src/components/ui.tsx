@@ -117,3 +117,75 @@ export function SectionLabel({ children }: { children: ReactNode }) {
     </p>
   )
 }
+
+export function SkeletonCard() {
+  return (
+    <div className="card animate-pulse">
+      <div className="h-3 w-24 bg-ink-600 rounded-md mb-4" />
+      <div className="h-8 w-16 bg-ink-700 rounded-md mb-2" />
+      <div className="h-3 w-20 bg-ink-600 rounded-md" />
+    </div>
+  )
+}
+
+export function SkeletonRow() {
+  return (
+    <div className="flex items-center gap-4 py-4 animate-pulse">
+      <div className="w-9 h-9 rounded-xl bg-ink-700 flex-shrink-0" />
+      <div className="flex-1 space-y-2">
+        <div className="h-3.5 bg-ink-700 rounded-md w-36" />
+        <div className="h-3 bg-ink-800 rounded-md w-48" />
+      </div>
+      <div className="h-6 w-16 bg-ink-700 rounded-full" />
+    </div>
+  )
+}
+
+export function SkeletonChart() {
+  return (
+    <div className="animate-pulse">
+      <div className="h-3 w-32 bg-ink-600 rounded-md mb-5" />
+      <div className="flex items-end gap-2 h-32">
+        {[40, 65, 50, 80, 55, 70, 45, 90].map((h, i) => (
+          <div key={i} className="flex-1 bg-ink-700 rounded-t-md" style={{ height: `${h}%` }} />
+        ))}
+      </div>
+    </div>
+  )
+}
+
+export function SkeletonAlert() {
+  return (
+    <div className="rounded-xl p-3 border border-ink-600 animate-pulse space-y-2">
+      <div className="flex justify-between">
+        <div className="h-3 w-24 bg-ink-700 rounded-md" />
+        <div className="h-5 w-16 bg-ink-700 rounded-full" />
+      </div>
+      <div className="h-3 w-full bg-ink-800 rounded-md" />
+      <div className="h-3 w-3/4 bg-ink-800 rounded-md" />
+    </div>
+  )
+}
+
+export function SkeletonDashboard() {
+  return (
+    <div className="max-w-7xl mx-auto px-6 py-8">
+      <div className="mb-8 space-y-2 animate-pulse">
+        <div className="h-7 w-52 bg-ink-700 rounded-md" />
+        <div className="h-4 w-72 bg-ink-800 rounded-md" />
+      </div>
+      <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-8">
+        {[...Array(4)].map((_, i) => <SkeletonCard key={i} />)}
+      </div>
+      <div className="grid lg:grid-cols-2 gap-6">
+        <div className="card space-y-4">
+          <div className="h-3 w-28 bg-ink-600 rounded-md animate-pulse" />
+          {[...Array(5)].map((_, i) => <SkeletonRow key={i} />)}
+        </div>
+        <div className="card">
+          <SkeletonChart />
+        </div>
+      </div>
+    </div>
+  )
+}

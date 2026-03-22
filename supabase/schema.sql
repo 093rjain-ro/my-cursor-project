@@ -2,11 +2,20 @@
 -- Enable UUID extension
 CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
 
+CREATE TABLE public.classes (
+    id UUID DEFAULT uuid_generate_v4() PRIMARY KEY,
+    name TEXT NOT NULL,
+    educator_id UUID REFERENCES auth.users(id) ON DELETE CASCADE,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT timezone('utc'::text, now()) NOT NULL
+);
+
 -- PROFILES table to store user metadata (so we don't have to query auth.users directly for joins)
 CREATE TABLE public.profiles (
     id UUID REFERENCES auth.users(id) ON DELETE CASCADE PRIMARY KEY,
     role TEXT CHECK (role IN ('student', 'educator', 'admin')) NOT NULL,
     full_name TEXT,
+    email TEXT,
+    class_id UUID REFERENCES public.classes(id),
     created_at TIMESTAMP WITH TIME ZONE DEFAULT timezone('utc'::text, now()) NOT NULL
 );
 
@@ -14,11 +23,12 @@ CREATE TABLE public.profiles (
 CREATE OR REPLACE FUNCTION public.handle_new_user() 
 RETURNS TRIGGER AS $$
 BEGIN
-  INSERT INTO public.profiles (id, role, full_name)
+  INSERT INTO public.profiles (id, role, full_name, email)
   VALUES (
     new.id,
     COALESCE(new.raw_user_meta_data->>'role', 'student'),
-    new.raw_user_meta_data->>'full_name'
+    new.raw_user_meta_data->>'full_name',
+    new.email
   );
   RETURN new;
 END;
@@ -51,12 +61,15 @@ CREATE TABLE public.alerts (
     prediction_id UUID REFERENCES public.predictions(id) ON DELETE CASCADE,
     student_id UUID REFERENCES public.profiles(id) ON DELETE CASCADE,
     educator_id UUID REFERENCES public.profiles(id) ON DELETE CASCADE, -- can be null if any educator picks it
-    status TEXT DEFAULT 'active' CHECK (status IN ('active', 'dismissed')),
+    message TEXT,
+    status TEXT DEFAULT 'pending' CHECK (status IN ('pending', 'sent', 'active', 'dismissed')),
+    sent_at TIMESTAMP WITH TIME ZONE,
     created_at TIMESTAMP WITH TIME ZONE DEFAULT timezone('utc'::text, now()) NOT NULL
 );
 
 -- Set up Row Level Security (RLS)
 ALTER TABLE public.profiles ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.classes ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.predictions ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.alerts ENABLE ROW LEVEL SECURITY;
 

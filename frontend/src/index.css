@@ -31,10 +31,10 @@
            hover:bg-blue-400 transition-all duration-200 active:scale-95 text-sm;
   }
 
-  .btn-ghost {
-    @apply border border-ink-500 text-slate-400 font-body px-5 py-2.5 rounded-xl
-           hover:border-ink-400 hover:text-slate-200 transition-all duration-200 text-sm;
-  }
+  .btn-ghost  {
+  @apply border border-ink-500 text-slate-400 font-body px-5 py-2.5 rounded-xl
+         hover:text-slate-200 transition-all duration-200 text-sm;
+}
 
   .input {
     @apply bg-ink-700 border border-ink-500 rounded-xl px-4 py-3 text-sm text-slate-200
